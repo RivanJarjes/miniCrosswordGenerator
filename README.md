@@ -22,6 +22,7 @@ https://github.com/user-attachments/assets/e5dc5ae0-9bbc-4c73-994d-c373f6f05b34
 Requirements
 - [Python OpenAPI module](https://pypi.org/project/openai/)
 - npm
+
 Run the web application with `npm run dev` at root, and run the backend service with `./mvnw spring-boot:run`
 ## Limitations
 - Currently limited to a 5x5 grid size unlike the real NYT Mini-Crossword
