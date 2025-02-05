@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CrosswordGameClass } from "@/lib/CrosswordGameClass";
+import Cookies from 'js-cookie';
 
 // Clue type for the clues object
 type ClueType = {
@@ -20,16 +21,18 @@ export default function Crossword() {
   const [currentHint, setCurrentHint] = useState<number>(1);
   const [currentDirection, setCurrentDirection] = useState<'across' | 'down'>('across');
   const [theme, setTheme] = useState("");
+
+  const [isFilled, setIsFilled] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showDebug, setShowDebug] = useState(true);
   const [maxAttempts, setMaxAttempts] = useState(15);
   const [maxWords, setMaxWords] = useState(100);
   const [regenerate, setRegenerate] = useState(false);
-  const [isFilled, setIsFilled] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [showMessage, setShowMessage] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [themeWords, setthemeWords] = useState(3);
+  const [themeWords, setThemeWords] = useState(3);
   const [wordTokens, setWordTokens] = useState(500);
   const [hintTokens, setHintTokens] = useState(300);
 
@@ -51,7 +54,11 @@ export default function Crossword() {
     // Add keyboard shortcut for debug menu
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === "D") {
-        setShowDebug((prev) => !prev);
+        setShowDebug((prev) => {
+          const newValue = !prev;
+          Cookies.set('showDebug', newValue.toString());
+          return newValue;
+        });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -137,6 +144,29 @@ export default function Crossword() {
     return () => clearInterval(interval);
   }, []);
 
+  // Add a new effect to load cookie values after mount
+  useEffect(() => {
+    // Load values from cookies
+    setShowDebug(Cookies.get('showDebug') === 'true');
+    setMaxAttempts(parseInt(Cookies.get('maxAttempts') || '15'));
+    setMaxWords(parseInt(Cookies.get('maxWords') || '100'));
+    setRegenerate(Cookies.get('regenerate') === 'true');
+    setThemeWords(parseInt(Cookies.get('themeWords') || '3'));
+    setWordTokens(parseInt(Cookies.get('wordTokens') || '500'));
+    setHintTokens(parseInt(Cookies.get('hintTokens') || '300'));
+  }, []); // Empty dependency array means this runs once after mount
+
+  // Keep the existing effect to save values
+  useEffect(() => {
+    Cookies.set('maxAttempts', maxAttempts.toString());
+    Cookies.set('maxWords', maxWords.toString());
+    Cookies.set('regenerate', regenerate.toString());
+    Cookies.set('themeWords', themeWords.toString());
+    Cookies.set('wordTokens', wordTokens.toString());
+    Cookies.set('hintTokens', hintTokens.toString());
+    Cookies.set('showDebug', showDebug.toString());
+  }, [maxAttempts, maxWords, regenerate, themeWords, wordTokens, hintTokens, showDebug]);
+  
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,6 +236,18 @@ export default function Crossword() {
     }
   };
 
+  // Update the input handlers to validate input
+  const handleNumberInput = (
+    value: string, 
+    setter: (val: number) => void,
+    min: number = 1
+  ) => {
+    const num = parseInt(value);
+    if (!isNaN(num) && num >= min) {
+      setter(num);
+    }
+  };
+
   // Render the component
   return (
     <div className="flex flex-col items-center gap-8">
@@ -265,7 +307,7 @@ export default function Crossword() {
                 <input
                   type="number"
                   value={maxAttempts}
-                  onChange={(e) => setMaxAttempts(parseInt(e.target.value))}
+                  onChange={(e) => handleNumberInput(e.target.value, setMaxAttempts)}
                   className="p-1 border rounded"
                   min="1"
                 />
@@ -297,7 +339,7 @@ export default function Crossword() {
                 <input
                   type="number"
                   value={maxWords}
-                  onChange={(e) => setMaxWords(parseInt(e.target.value))}
+                  onChange={(e) => handleNumberInput(e.target.value, setMaxWords)}
                   className="p-1 border rounded"
                   min="1"
                 />
@@ -330,7 +372,7 @@ export default function Crossword() {
                 <input
                   type="number"
                   value={themeWords}
-                  onChange={(e) => setthemeWords(parseInt(e.target.value))}
+                  onChange={(e) => handleNumberInput(e.target.value, setThemeWords)}
                   className="p-1 border rounded"
                   min="1"
                 />
@@ -361,7 +403,7 @@ export default function Crossword() {
                 <input
                   type="number"
                   value={wordTokens}
-                  onChange={(e) => setWordTokens(parseInt(e.target.value))}
+                  onChange={(e) => handleNumberInput(e.target.value, setWordTokens)}
                   className="p-1 border rounded"
                   min="1"
                 />
@@ -393,7 +435,7 @@ export default function Crossword() {
                 <input
                   type="number"
                   value={hintTokens}
-                  onChange={(e) => setHintTokens(parseInt(e.target.value))}
+                  onChange={(e) => handleNumberInput(e.target.value, setHintTokens)}
                   className="p-1 border rounded"
                   min="1"
                 />
@@ -453,7 +495,8 @@ export default function Crossword() {
                 <h2 className="font-bold mb-2 text-xl">Across</h2>
                 <div className="space-y-0.5">
                   {clues?.across &&
-                    Object.entries(clues.across).map(([number, clue]) => (
+                    Object.entries(clues.across)
+                      .map(([number, clue]) => (
                       <p 
                         key={`across-${number}`} 
                         className={`text-base p-2 rounded cursor-pointer ${
@@ -477,7 +520,8 @@ export default function Crossword() {
                 <h2 className="font-bold mb-2 text-xl">Down</h2>
                 <div className="space-y-0.5">
                   {clues?.down &&
-                    Object.entries(clues.down).map(([number, clue]) => (
+                    Object.entries(clues.down)
+                      .map(([number, clue]) => (
                       <p 
                         key={`down-${number}`} 
                         className={`text-base p-2 rounded cursor-pointer ${

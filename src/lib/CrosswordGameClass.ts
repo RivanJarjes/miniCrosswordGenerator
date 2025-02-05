@@ -122,10 +122,10 @@ export class CrosswordGameClass {
   // Get the current hint, used for hint highlighting
   public getCurrentHint() {
     if (this.direction === "across") {
-      if (this.selectedCell.y == 0) return 1;
-      else return this.selectedCell.y + 5;
+      if (this.selectedCell.y === 0) return 1;
+      return this.selectedCell.y + 5; // Returns 6, 7, 8, or 9 for rows 1-4
     } else {
-      return this.selectedCell.x + 1;
+      return this.selectedCell.x + 1; // Returns 1, 2, 3, 4, or 5 for columns
     }
   }
 
@@ -143,8 +143,18 @@ export class CrosswordGameClass {
     grid: string[][];
     clues: { across: Record<string, string>; down: Record<string, string> };
   }) {
+    // Transform across clue numbers from 2-5 to 6-9
+    const transformedClues = {
+      across: Object.entries(puzzleData.clues.across).reduce((acc, [key, value]) => {
+        const newKey = key >= '2' && key <= '5' ? String(Number(key) + 4) : key;
+        return { ...acc, [newKey]: value };
+      }, {}),
+      down: puzzleData.clues.down
+    };
+
     this.puzzle = {
-      ...puzzleData,
+      grid: puzzleData.grid,
+      clues: transformedClues,
       numbers: this.createNumbers(),
     };
     this.grid = this.createEmptyGrid();
@@ -164,14 +174,18 @@ export class CrosswordGameClass {
   // Create the hint numbers for the puzzle
   private createNumbers() {
     const numbers: Record<string, number> = {};
-    let count = 1;
-    for (let x = 0; x < this.size; x++) {
-      numbers[`${x},0`] = count;
-      count++;
+    
+    // Add number 1 to first cell
+    numbers["0,0"] = 1;
+    
+    // Add numbers 2-5 to cells that start down words
+    for (let x = 1; x < this.size; x++) {
+      numbers[`${x},0`] = x + 1;
     }
+    
+    // Add numbers 6-9 to cells that start across words
     for (let y = 1; y < this.size; y++) {
-      numbers[`0,${y}`] = count;
-      count++;
+      numbers[`0,${y}`] = y + 5;
     }
 
     return numbers;
@@ -222,13 +236,13 @@ export class CrosswordGameClass {
     } // Handle arrow key events
     else if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
       if (this.direction === "across") {
-        this.moveSelection(event.key === "ArrowRight" ? 1 : -1, true);
+        this.moveSelection(event.key === "ArrowRight" ? 1 : -1);
       } else {
         this.direction = "across";
       }
     } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       if (this.direction === "down") {
-        this.moveSelection(event.key === "ArrowDown" ? 1 : -1, true);
+        this.moveSelection(event.key === "ArrowDown" ? 1 : -1);
       } else {
         this.direction = "down";
       }
@@ -237,6 +251,11 @@ export class CrosswordGameClass {
       this.moveLine();
     } else if (event.key === "Backspace") {
       // Handle backspace
+      if (this.direction === "across" && this.selectedCell.x > 0 && this.grid[this.selectedCell.y][this.selectedCell.x] === "") {
+        this.grid[this.selectedCell.y][this.selectedCell.x-1] = "";
+      } else if (this.direction === "down" && this.selectedCell.y > 0 && this.grid[this.selectedCell.y-1][this.selectedCell.x] === "") {
+        this.grid[this.selectedCell.y-1][this.selectedCell.x] = "";
+      }
       this.grid[this.selectedCell.y][this.selectedCell.x] = "";
       this.moveSelection(-1);
       this.checkPuzzleComplete();
@@ -276,24 +295,8 @@ export class CrosswordGameClass {
     return this.isCorrect;
   }
 
-  private moveSelection(delta = 1, arrow: boolean = false) {
+  private moveSelection(delta = 1) {
     if (this.direction === "across") {
-      // If user types last character, move to next row/column
-      if (
-        !arrow &&
-        this.selectedCell.x + delta >= this.size &&
-        !this.isFilled
-      ) {
-        if (this.selectedCell.y + 1 < this.size) {
-          this.selectedCell.y++;
-          this.selectedCell.x = 0;
-        } else {
-          this.direction = "down";
-          this.selectedCell.y = 0;
-          this.selectedCell.x = 0;
-        }
-        return;
-      }
       this.selectedCell.x = Math.min(
         Math.max(0, this.selectedCell.x + delta),
         this.size - 1
