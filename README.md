@@ -27,6 +27,6 @@ Run the web application with `npm run dev` at root, and run the backend service 
 - Currently limited to a 5x5 grid size unlike the real NYT Mini-Crossword
 - It can be a slow generation process, as it can take up to 2 minutes depending on the settings you establish. This is due to the API calls and the use of ~~Python~~.
 - Theme matching isn't perfect, you're usually getting 4-5 theme words at best when you change that parameter.
-- Some generated clues may not be coherant or may be inappropriate.
+- Some generated clues may not be coherant or may be inappropriate. I recommend using Perplexity for word and hint generation because it's been the most reliable during testing and has the most recent knowledge.
 ## Next Steps
 - [ ] Implement more dynamic grid sizes.
