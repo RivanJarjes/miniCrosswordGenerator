@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/e5dc5ae0-9bbc-4c73-994d-c373f6f05b34
 - AI: OpenAI/Perplexity APIs for word and clue generation
 - ~~Database: JPA/Hibernate~~ (originally was used when this service was up on my website (taken down because api calls expensive), taken off the source)
 ## Usage
-Requirements
+Requirements:
 - [Python OpenAPI module](https://pypi.org/project/openai/)
 - npm
 
