@@ -3,7 +3,9 @@ An AI-powered crossword puzzle generator
 ## Description
 A web-app based off of the New York Times' Mini Crossword which allows the user to generate a custom themed crossword.
 Built with built with Next.JS, Python, and Spring Boot, it works by (*(optionally)* repeatedly) generating words from a LLM (Perplexity or a fine tuned GPT model were used) where a backtracking algorithm would attempt to find a crossword with the goal amount of themed words included alongside an existing word list. The LLM is used again for generating hints.
-https://github.com/user-attachments/assets/2aafc076-b29e-44b1-af4f-a6589c87efe2
+
+https://github.com/user-attachments/assets/e5dc5ae0-9bbc-4c73-994d-c373f6f05b34
+
 ### Features
 - Theme-based puzzle generation
 - Interactive crossword interface
